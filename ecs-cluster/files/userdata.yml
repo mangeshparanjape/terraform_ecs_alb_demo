@@ -1,0 +1,10 @@
+#cloud-config 
+package_upgrade: true
+
+packages: 
+  - aws-cli
+
+write_files:
+  - path: /etc/ecs/ecs.config
+    content: |
+      ECS_CLUSTER=${ecs_cluster}

@@ -1,0 +1,33 @@
+[
+  {
+    "cpu": 256,
+    "essential": true,
+    "image": "${image_url}",
+    "memory": 512,
+    "name": "${container_name}",
+    "portMappings": [
+      {
+        "containerPort": 30003,
+        "hostPort": 0,
+		"protocol": "tcp"
+      }
+    ],
+	"environment": [
+        {
+          "name": "FOCUS_API_HOST",
+          "value": "${alb_dns_name}"
+        },
+        {
+          "name": "FOCUS_UI_HOST",
+          "value": "${alb_dns_name}"
+        }
+    ],
+    "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-group": "${log_group_name}",
+            "awslogs-region": "${log_group_region}"
+        }
+    }
+  }
+]
