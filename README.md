@@ -7,5 +7,9 @@ Terraform ECS ALB Demo
 3. terraform apply
 
 # Destroying
+<<<<<<< HEAD
 terraform destroy successfully
+=======
+terraform destroy
+>>>>>>> 8c40e7d11e62a87628e6987ae2ba984ab20f580a
 
