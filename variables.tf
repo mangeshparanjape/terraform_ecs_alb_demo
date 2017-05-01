@@ -35,19 +35,19 @@ variable "instance_type" {
   default = "t2.small"
 }
 variable "asg_min" {
-  default = "1"
+  default = "2"
 }
 variable "asg_max" {
-  default = "1"
+  default = "2"
 }
 variable "asg_desired" {
-  default = "1"
+  default = "2"
 }
 # Amazon Linux AMI
 # ECS optimized
 variable "ecs_amis" {
   default = {
-    us-east-1 = "ami-1924770e"
+    us-east-1 = "ami-b2df2ca4"
   }
 }
 

@@ -24,24 +24,45 @@ output "vpc_id" {
 #
 # NAT Instance
 #
-resource "aws_instance" "nat" {
-  ami = "${lookup(var.nat_amis, var.region)}" #"ami-184dc970" # this is a special ami preconfigured to do NAT
-  availability_zone = "${element(var.availability_zones, 0)}"
-  instance_type = "${var.instance_type}"
-  key_name = "${var.key_name}"
-  security_groups = ["${aws_security_group.nat.id}"]
-  subnet_id = "${element(aws_subnet.public_sn.*.id, 0)}"
-  associate_public_ip_address = true
-  source_dest_check = false
-  tags {
-      Name = "nat_ec2"
-  }
+#resource "aws_instance" "nat" {
+#  ami = "${lookup(var.nat_amis, var.region)}" #"ami-184dc970" # this is a special ami preconfigured to do NAT
+#  availability_zone = "${element(var.availability_zones, count.index)}"
+#  instance_type = "${var.instance_type}"
+#  key_name = "${var.key_name}"
+#  security_groups = ["${aws_security_group.nat.id}"]
+#  subnet_id = "${element(aws_subnet.public_sn.*.id, count.index)}"
+#  associate_public_ip_address = true
+#  source_dest_check = false
+#  tags {
+#      Name = "nat_ec2"
+#  }
+#  count = "${length(var.private_subnet_cidr)}"
+#}
+
+#resource "aws_eip" "nat" {
+#  instance = "${element(aws_instance.nat.*.id, count.index)}"
+#  vpc = true
+#  count = "${length(var.private_subnet_cidr)}"	
+#}
+
+#NAT Gateway
+resource "aws_nat_gateway" "nat_gw" {
+  allocation_id = "${element(aws_eip.nat.*.id, count.index)}"
+  subnet_id     = "${element(aws_subnet.public_sn.*.id, count.index)}"
+  count = "${length(var.public_subnet_cidr)}"
+  
+  depends_on = [
+    "aws_internet_gateway.default"
+  ]	
 }
 
 resource "aws_eip" "nat" {
-  instance = "${aws_instance.nat.id}"
   vpc = true
-
+  count = "${length(var.public_subnet_cidr)}"
+	
+  depends_on = [
+    "aws_internet_gateway.default"
+  ]	
 }
 
 resource "aws_instance" "bastion" {
@@ -114,21 +135,40 @@ output "private_subnet_id" {
   value = "${element(aws_subnet.private_sn.*.id, 0)}"
 }
 
-resource "aws_route_table" "private_rt" {
+#NAT instance route
+#resource "aws_route_table" "private_rt" {
+#  vpc_id = "${aws_vpc.default.id}"
+#  route {
+#      cidr_block = "0.0.0.0/0"
+#      instance_id = "${element(aws_instance.nat.*.id, count.index)}"
+#  }
+#  count = "${length(var.private_subnet_cidr)}"
+#  tags {
+#      Name = "private_subnet_route_table"
+#  }
+#}
+
+
+#NAT gateway route
+resource "aws_route_table" "private_rt_tbl" {
   vpc_id = "${aws_vpc.default.id}"
-  route {
-      cidr_block = "0.0.0.0/0"
-      instance_id = "${aws_instance.nat.id}"
-  }
-  count = "${length(var.private_subnet_cidr)}"
+  count = "${length(var.public_subnet_cidr)}"
   tags {
       Name = "private_subnet_route_table"
   }
 }
 
+resource "aws_route" "private_rt" {
+  route_table_id            = "${element(aws_route_table.private_rt_tbl.*.id, count.index)}"
+  destination_cidr_block    = "0.0.0.0/0"
+  nat_gateway_id 			= "${element(aws_nat_gateway.nat_gw.*.id, count.index)}"
+  count = "${length(var.public_subnet_cidr)}"
+}
+
+
 resource "aws_route_table_association" "private_rt_assoc" {
   subnet_id = "${element(aws_subnet.private_sn.*.id, count.index)}"
-  route_table_id = "${element(aws_route_table.private_rt.*.id, count.index)}"
+  route_table_id = "${element(aws_route_table.private_rt_tbl.*.id, count.index)}"
   count = "${length(var.private_subnet_cidr)}"
 }
 

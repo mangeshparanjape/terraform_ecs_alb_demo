@@ -51,8 +51,9 @@ resource "aws_autoscaling_group" "main" {
     availability_zones = ["${var.availability_zones}"]
     vpc_zone_identifier = ["${join(",", var.subnets)}"]
     launch_configuration = "${aws_launch_configuration.lc.name}"
-    min_size = 1
-    max_size = 2
+    min_size = "${var.min_size}"
+    max_size = "${var.max_size}"
+	desired_capacity = "${var.desired_capacity}"
 
     lifecycle {
         create_before_destroy = true
@@ -157,4 +158,3 @@ resource "aws_iam_instance_profile" "ecs" {
 output "id" {
   value = "${aws_ecs_cluster.main.id}"
 }
-
