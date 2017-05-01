@@ -1,7 +1,7 @@
 # Overview
 Terraform ECS ALB Demo
 
-#prepare 
+# Prepare 
 1. Create AWS key pair using console or cli. this key will be used t launch EC2 instances
 
 2. Create a file named terraform.tfvars with the following contents and assign variables within this file:
